@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lydia Achungo | Portfolio</title>
+<title>Lydia Achungo | Cybersecurity Portfolio</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root {
@@ -12,9 +12,10 @@
         --text-secondary: #94a3b8;
         --accent-primary: #10b981; /* Green */
         --accent-blue: #3b82f6;    /* Blue */
-        --accent-red: #ef4444;     /* Red */
-        --accent-cyan: #06b6d4;    /* Cyan */
-        --accent-amber: #f59e0b;   /* Amber */
+        --accent-red: #ef4444;     /* Red (Defense) */
+        --accent-cyan: #06b6d4;    /* Cyan (NIDS) */
+        --accent-amber: #f59e0b;   /* Amber (Data) */
+        --accent-purple: #9333ea;  /* Purple (Auth) */
         --card-bg: rgba(15, 23, 42, 0.75);
         --border-color: rgba(148, 163, 184, 0.1);
     }
@@ -90,6 +91,7 @@
     .tag-red { color: var(--accent-red); border-color: var(--accent-red); }
     .tag-cyan { color: var(--accent-cyan); border-color: var(--accent-cyan); }
     .tag-amber { color: var(--accent-amber); border-color: var(--accent-amber); }
+    .tag-purple { color: var(--accent-purple); border-color: var(--accent-purple); }
     
     .stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-primary); }
     .stat-number { font-size: 1.5rem; font-weight: 800; color: #fff; }
@@ -223,41 +225,48 @@
     <h2 class="section-title">Featured <span>Projects</span></h2>
     <div class="grid">
         
-        <a href="password_generator.html" style="text-decoration: none;" class="card">
-            <i class="fas fa-key card-icon"></i>
-            <h3>SecureGen Pro</h3>
-            <p>A client-side high-entropy password generator. Features crack-time estimation algorithms.</p>
-            <div><span class="tag tag-green">LIVE APP</span></div>
-        </a>
-
-        <a href="bruteforce_sim.html" style="text-decoration: none;" class="card">
-            <i class="fas fa-shield-alt card-icon"></i>
-            <h3>WAF Defense Lab</h3>
-            <p>Live simulation of a dictionary attack with automated IP blocking and traffic analysis.</p>
-            <div><span class="tag tag-red">INTERACTIVE</span></div>
-        </a>
-
-        <a href="phishing_sim.html" style="text-decoration: none;" class="card">
-            <i class="fas fa-user-secret card-icon"></i>
-            <h3>Phishing Simulation</h3>
-            <p>Executed an authorized corporate phishing campaign using GoPhish to test employee awareness.</p>
-            <div><span class="tag tag-blue">SIMULATION</span></div>
+        <a href="owasp_defense.html" style="text-decoration: none;" class="card">
+            <i class="fas fa-lock card-icon" style="color: var(--accent-red);"></i>
+            <h3>Fortress WAF Simulator</h3>
+            <p>Next-Gen defense engine for testing and managing OWASP Top 10 protections interactively.</p>
+            <div><span class="tag tag-red">OWASP DEFENSE</span></div>
         </a>
 
         <a href="nids_project.html" style="text-decoration: none;" class="card">
-            <i class="fas fa-microchip card-icon"></i>
+            <i class="fas fa-microchip card-icon" style="color: var(--accent-cyan);"></i>
             <h3>Sentinel IDS v2.0</h3>
             <p>A functional RegEx-based detection engine that scans input logs against Snort signatures.</p>
             <div><span class="tag tag-cyan">THREAT HUNTING</span></div>
         </a>
 
         <a href="threat_dashboard.html" style="text-decoration: none;" class="card">
-            <i class="fas fa-globe-americas card-icon"></i>
+            <i class="fas fa-globe-americas card-icon" style="color: var(--accent-amber);"></i>
             <h3>Global Intel Map</h3>
             <p>Real-time cyber warfare visualization with live attack vectors and DEFCON status monitoring.</p>
             <div><span class="tag tag-amber">DATA VISUALIZATION</span></div>
         </a>
+        
+        <a href="bruteforce_sim.html" style="text-decoration: none;" class="card">
+            <i class="fas fa-shield-alt card-icon" style="color: var(--accent-purple);"></i>
+            <h3>WAF Defense Lab</h3>
+            <p>Live simulation of a dictionary attack with automated IP blocking and traffic analysis.</p>
+            <div><span class="tag tag-purple">AUTH BYPASS</span></div>
+        </a>
 
+        <a href="password_generator.html" style="text-decoration: none;" class="card">
+            <i class="fas fa-key card-icon" style="color: var(--accent-primary);"></i>
+            <h3>SecureGen Pro</h3>
+            <p>A client-side high-entropy password generator. Features crack-time estimation algorithms.</p>
+            <div><span class="tag tag-green">CRYPTOGRAPHY</span></div>
+        </a>
+
+        <a href="phishing_sim.html" style="text-decoration: none;" class="card">
+            <i class="fas fa-user-secret card-icon" style="color: var(--accent-blue);"></i>
+            <h3>Phishing Simulation</h3>
+            <p>Simulated corporate phishing campaign to test employee awareness and capture credentials.</p>
+            <div><span class="tag tag-blue">SOCIAL ENG.</span></div>
+        </a>
+        
     </div>
 </section>
 

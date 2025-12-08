@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORTRESS | OWASP DEFENSE ENGINE</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-deep: #030508;
+        --glass: rgba(20, 30, 50, 0.6);
+        --border: rgba(100, 200, 255, 0.1);
+        --neon-blue: #00f0ff;
+        --neon-red: #ff0055;
+        --neon-green: #00ff9d;
+        --neon-amber: #ffcc00;
+        --text: #e0f7ff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: var(--bg-deep);
+        color: var(--text);
+        font-family: 'Exo 2', sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 70px 1fr 200px;
+        background-image: radial-gradient(circle at 50% 50%, #0a1525 0%, #030508 100%);
+    }
+
+    /* HEADER */
+    header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 30px; border-bottom: 1px solid var(--border);
+        background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+    }
+    .brand { font-size: 1.8rem; font-weight: 700; letter-spacing: 3px; background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .health-bar-container { display: flex; align-items: center; gap: 15px; }
+    .health-bar-bg { width: 200px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
+    .health-bar-fill { height: 100%; width: 100%; background: var(--neon-green); transition: 0.5s; box-shadow: 0 0 10px var(--neon-green); }
+
+    /* MAIN GRID */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr 350px;
+        gap: 20px; padding: 20px;
+        overflow: hidden;
+    }
+
+    /* PANELS */
+    .panel {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex; flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        backdrop-filter: blur(15px);
+    }
+    .panel-title { font-size: 0.9rem; color: var(--neon-blue); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; }
+
+    /* LEFT: DEFENSE MODULES */
+    .module {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid #333; transition: 0.3s;
+    }
+    .module.active { border-left-color: var(--neon-green); background: rgba(0, 255, 157, 0.05); }
+    
+    .switch {
+        position: relative; display: inline-block; width: 40px; height: 20px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #333; transition: .4s; border-radius: 20px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+        background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--neon-green); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* CENTER: VISUALIZER */
+    .visualizer { position: relative; display: flex; justify-content: center; align-items: center; }
+    .shield-core {
+        width: 150px; height: 150px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,240,255,0.1), transparent);
+        border: 2px solid var(--neon-blue);
+        box-shadow: 0 0 50px rgba(0,240,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3rem; color: var(--neon-blue);
+        transition: 0.3s; z-index: 2;
+    }
+    .shield-core.breached { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 50px rgba(255, 0, 85, 0.4); }
+
+    .orbit {
+        position: absolute; width: 250px; height: 250px; border-radius: 50%;
+        border: 1px dashed rgba(255,255,255,0.1); animation: spin 10s linear infinite;
+    }
+    .orbit::before { content: ''; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 10px var(--neon-blue); }
+
+    /* RIGHT: LOGS */
+    .log-feed { font-family: 'Space Mono', monospace; font-size: 0.75rem; overflow-y: auto; height: 100%; }
+    .log-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .log-ts { color: #666; }
+    .log-blk { color: var(--neon-green); font-weight: bold; }
+    .log-breach { color: var(--neon-red); font-weight: bold; text-shadow: 0 0 5px var(--neon-red); }
+
+    /* BOTTOM: ATTACK LAUNCHER */
+    .control-deck {
+        grid-column: 1 / -1; display: flex; gap: 20px; align-items: center; padding: 0 40px;
+        background: rgba(0,0,0,0.3); border-top: 1px solid var(--border);
+    }
+    .attack-btn {
+        background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red);
+        padding: 12px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        font-family: 'Exo 2', sans-serif; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .attack-btn:hover { background: var(--neon-red); color: #fff; box-shadow: 0 0 20px var(--neon-red); }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+
+    .shake-anim { animation: shake 0.5s; }
+
+    .nav-btn { color: #fff; text-decoration: none; border: 1px solid #fff; padding: 8px 20px; border-radius: 4px; transition: 0.3s; }
+    .nav-btn:hover { background: #fff; color: #000; }
+
+</style>
+</head>
+<body>
+
+<header>
+    <div class="brand"><i class="fas fa-shield-virus"></i> FORTRESS</div>
+    <div class="health-bar-container">
+        <span>INTEGRITY</span>
+        <div class="health-bar-bg"><div class="health-bar-fill" id="health-fill"></div></div>
+        <span id="health-text">100%</span>
+    </div>
+    <a href="index.html" class="nav-btn">EXIT SIMULATION</a>
+</header>
+
+<div class="main-grid">
+    <div class="panel">
+        <div class="panel-title">ACTIVE DEFENSE MODULES</div>
+        
+        <div class="module" id="mod-sqli">
+            <div>
+                <div style="font-weight:bold;">SQL FILTER</div>
+                <div style="font-size:0.7rem; color:#888;">Prevents Injection (OWASP A03)</div>
+            </div>
+            <label class="switch"><input type="checkbox" onchange="toggleDefense('sqli')"><span class="slider"></span></label>
+        </div>
+
+        <div class="module" id="mod-xss">
+            <div>
+                <div style="font-weight:bold;">XSS SANITIZER</div>
+                <div style="font-size:0.7rem; color:#888;">Escapes Malicious Scripts (OWASP A03)</div>
+            </div>
+            <label class="switch"><input type="checkbox" onchange="toggleDefense('xss')"><span class="slider"></span></label>
+        </div>
+
+        <div class="module" id="mod-auth">
+            <div>
+                <div style="font-weight:bold;">AUTH GUARD</div>
+                <div style="font-size:0.7rem; color:#888;">Stops Brute Force (OWASP A07)</div>
+            </div>
+            <label class="switch"><input type="checkbox" onchange="toggleDefense('auth')"><span class="slider"></span></label>
+        </div>
+
+        <div class="module" id="mod-ddos">
+            <div>
+                <div style="font-weight:bold;">RATE LIMITER</div>
+                <div style="font-size:0.7rem; color:#888;">Mitigates DoS/Bot Traffic</div>
+            </div>
+            <label class="switch"><input type="checkbox" onchange="toggleDefense('ddos')"><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <div class="panel visualizer">
+        <div class="orbit"></div>
+        <div class="shield-core" id="shield-icon">
+            <i class="fas fa-server"></i>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">
+            <span>INCIDENT LOGS</span>
+            <button onclick="clearLogs()" style="background:none; border:none; color:#666; cursor:pointer;">CLEAR</button>
+        </div>
+        <div class="log-feed" id="log-feed">
+            <div class="log-item">
+                <span class="log-ts">[SYSTEM]</span> WAF INITIALIZED...<br>
+                <span style="color:#888;">Waiting for traffic...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="control-deck">
+    <div style="font-weight:bold; color:#888; margin-right:20px;">PENETRATION TEST LAUNCHER:</div>
+    <button class="attack-btn" onclick="launchAttack('sqli')">SQL INJECTION</button>
+    <button class="attack-btn" onclick="launchAttack('xss')">XSS SCRIPT</button>
+    <button class="attack-btn" onclick="launchAttack('auth')">BRUTE FORCE</button>
+    <button class="attack-btn" onclick="launchAttack('ddos')">DDoS FLOOD</button>
+</div>
+
+<script>
+    // DEFENSE STATE
+    const defenses = { sqli: false, xss: false, auth: false, ddos: false };
+    let health = 100;
+    const shieldIcon = document.getElementById('shield-icon');
+    const logFeed = document.getElementById('log-feed');
+    const healthFill = document.getElementById('health-fill');
+    const healthText = document.getElementById('health-text');
+
+    // PAYLOADS FOR REALISM
+    const payloads = {
+        sqli: "' OR 1=1; DROP TABLE users; --",
+        xss: "<script>alert('Your Session is Stolen')</script>",
+        auth: "admin / password123 (Attempt 502)",
+        ddos: "SYN FLOOD [10,000 PACKETS/SEC]"
+    };
+
+    function toggleDefense(type) {
+        defenses[type] = !defenses[type];
+        const el = document.getElementById(`mod-${type}`);
+        if (defenses[type]) el.classList.add('active');
+        else el.classList.remove('active');
+        
+        addLog(`[CONFIG] ${type.toUpperCase()} PROTECTION ${defenses[type] ? 'ENABLED' : 'DISABLED'}`, 'sys');
+    }
+
+    function launchAttack(type) {
+        // ANIMATE SHAKE
+        shieldIcon.classList.add('shake-anim');
+        setTimeout(() => shieldIcon.classList.remove('shake-anim'), 500);
+
+        const payload = payloads[type];
+        
+        if (defenses[type]) {
+            // BLOCKED
+            shieldPulse('blue');
+            addLog(`[BLOCKED] ${type.toUpperCase()} ATTACK NEUTRALIZED.\nPayload: ${payload}`, 'blk');
+        } else {
+            // BREACHED
+            shieldPulse('red');
+            damageHealth(15);
+            addLog(`[BREACH] SECURITY COMPROMISED!\nPayload: ${payload}`, 'breach');
+        }
+    }
+
+    function shieldPulse(color) {
+        if(color === 'red') {
+            shieldIcon.style.borderColor = 'var(--neon-red)';
+            shieldIcon.style.color = 'var(--neon-red)';
+            shieldIcon.style.boxShadow = '0 0 50px var(--neon-red)';
+        } else {
+            shieldIcon.style.borderColor = 'var(--neon-green)';
+            shieldIcon.style.color = 'var(--neon-green)';
+            shieldIcon.style.boxShadow = '0 0 50px var(--neon-green)';
+        }
+        
+        setTimeout(() => {
+            shieldIcon.style.borderColor = '';
+            shieldIcon.style.color = '';
+            shieldIcon.style.boxShadow = '';
+        }, 600);
+    }
+
+    function damageHealth(amount) {
+        health = Math.max(0, health - amount);
+        healthFill.style.width = health + '%';
+        healthText.innerText = health + '%';
+        
+        if (health < 30) healthFill.style.background = 'var(--neon-red)';
+        else if (health < 70) healthFill.style.background = 'var(--neon-amber)';
+        
+        if (health === 0) {
+            addLog(`[CRITICAL] SYSTEM FAILURE. APP OFFLINE.`, 'breach');
+            shieldIcon.innerHTML = '<i class="fas fa-skull"></i>';
+        }
+    }
+
+    function addLog(msg, type) {
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        
+        const ts = new Date().toLocaleTimeString('en-US', {hour12:false});
+        let colorClass = '';
+        if(type === 'blk') colorClass = 'log-blk';
+        if(type === 'breach') colorClass = 'log-breach';
+        
+        div.innerHTML = `<span class="log-ts">[${ts}]</span> <span class="${colorClass}">${msg}</span>`;
+        logFeed.prepend(div);
+    }
+
+    function clearLogs() {
+        logFeed.innerHTML = '';
+    }
+</script>
+
+</body>
+</html>
