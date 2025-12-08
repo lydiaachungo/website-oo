@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FORTRESS | OWASP DEFENSE ENGINE</title>
+<title>FORTRESS | OWASP TOP 10 DEFENSE ENGINE</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -27,7 +27,7 @@
         height: 100vh;
         overflow: hidden;
         display: grid;
-        grid-template-rows: 70px 1fr 100px; /* Reduced space for the control deck */
+        grid-template-rows: 70px 1fr 100px;
         background-image: radial-gradient(circle at 50% 50%, #0a1525 0%, #030508 100%);
     }
 
@@ -60,15 +60,19 @@
         display: flex; flex-direction: column;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         backdrop-filter: blur(15px);
+        overflow-y: hidden; /* Important for log feed height */
     }
     .panel-title { font-size: 0.9rem; color: var(--neon-blue); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; }
 
     /* LEFT: DEFENSE MODULES */
+    .defense-scroll { overflow-y: auto; flex-grow: 1; }
     .module {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid #333; transition: 0.3s;
+        padding: 10px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid #333; transition: 0.3s;
     }
     .module.active { border-left-color: var(--neon-green); background: rgba(0, 255, 157, 0.05); }
+    .module-name { font-weight: bold; font-size: 0.9rem; }
+    .module-owasp { font-size:0.65rem; color:#888; }
     
     .switch {
         position: relative; display: inline-block; width: 40px; height: 20px;
@@ -105,7 +109,7 @@
     .orbit::before { content: ''; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 10px var(--neon-blue); }
 
     /* RIGHT: LOGS */
-    .log-feed { font-family: 'Space Mono', monospace; font-size: 0.75rem; overflow-y: auto; height: 100%; }
+    .log-feed { font-family: 'Space Mono', monospace; font-size: 0.75rem; overflow-y: auto; flex-grow: 1; }
     .log-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .log-ts { color: #666; }
     .log-blk { color: var(--neon-green); font-weight: bold; }
@@ -147,39 +151,83 @@
 
 <div class="main-grid">
     <div class="panel">
-        <div class="panel-title">ACTIVE DEFENSE MODULES</div>
+        <div class="panel-title">ACTIVE DEFENSE MODULES (OWASP 2021)</div>
         
-        <div class="module" id="mod-sqli">
-            <div>
-                <div style="font-weight:bold;">SQL FILTER</div>
-                <div style="font-size:0.7rem; color:#888;">Prevents Injection (OWASP A03)</div>
+        <div class="defense-scroll">
+            
+            <div class="module" id="mod-sqli">
+                <div>
+                    <div class="module-name">SQL FILTER</div>
+                    <div class="module-owasp">A03: Injection</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('sqli')"><span class="slider"></span></label>
             </div>
-            <label class="switch"><input type="checkbox" onchange="toggleDefense('sqli')"><span class="slider"></span></label>
-        </div>
+            
+            <div class="module" id="mod-xss">
+                <div>
+                    <div class="module-name">XSS SANITIZER</div>
+                    <div class="module-owasp">A03: Injection / Cross-Site Scripting</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('xss')"><span class="slider"></span></label>
+            </div>
 
-        <div class="module" id="mod-xss">
-            <div>
-                <div style="font-weight:bold;">XSS SANITIZER</div>
-                <div style="font-size:0.7rem; color:#888;">Escapes Malicious Scripts (OWASP A03)</div>
+            <div class="module" id="mod-cmd">
+                <div>
+                    <div class="module-name">CMD INJECTION GUARD</div>
+                    <div class="module-owasp">A03: Injection / OS Commands</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('cmd')"><span class="slider"></span></label>
             </div>
-            <label class="switch"><input type="checkbox" onchange="toggleDefense('xss')"><span class="slider"></span></label>
-        </div>
+            
+            <div class="module" id="mod-acl">
+                <div>
+                    <div class="module-name">ACL GUARD</div>
+                    <div class="module-owasp">A01: Broken Access Control (Path Traversal)</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('acl')"><span class="slider"></span></label>
+            </div>
+            
+            <div class="module" id="mod-crypto">
+                <div>
+                    <div class="module-name">CRYPTO FAILURE DETECT</div>
+                    <div class="module-owasp">A02: Plaintext Data Detection</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('crypto')"><span class="slider"></span></label>
+            </div>
+            
+            <div class="module" id="mod-rate">
+                <div>
+                    <div class="module-name">RATE LIMITER (DUMMY)</div>
+                    <div class="module-owasp">A04: Insecure Design / DoS Mitigation</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('rate')"><span class="slider"></span></label>
+            </div>
+            
+            <div class="module" id="mod-config">
+                <div>
+                    <div class="module-name">MISCONFIG DETECTOR</div>
+                    <div class="module-owasp">A05: Weak/Default Session Check</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('config')"><span class="slider"></span></label>
+            </div>
+            
+            <div class="module" id="mod-ssrf">
+                <div>
+                    <div class="module-name">SSRF FILTER</div>
+                    <div class="module-owasp">A07: Internal Address Blocking</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('ssrf')"><span class="slider"></span></label>
+            </div>
+            
+            <div class="module" id="mod-ssti">
+                <div>
+                    <div class="module-name">SSTI BLOCKER</div>
+                    <div class="module-owasp">A10: Template Marker Filter</div>
+                </div>
+                <label class="switch"><input type="checkbox" onchange="toggleDefense('ssti')"><span class="slider"></span></label>
+            </div>
 
-        <div class="module" id="mod-auth">
-            <div>
-                <div style="font-weight:bold;">CMD INJECTION GUARD</div>
-                <div style="font-size:0.7rem; color:#888;">Stops OS Command Execution (OWASP A03)</div>
             </div>
-            <label class="switch"><input type="checkbox" onchange="toggleDefense('auth')"><span class="slider"></span></label>
-        </div>
-
-        <div class="module" id="mod-ddos">
-            <div>
-                <div style="font-weight:bold;">RATE LIMITER (DUMMY)</div>
-                <div style="font-size:0.7rem; color:#888;">Simulates DoS/Bot Mitigation (A04)</div>
-            </div>
-            <label class="switch"><input type="checkbox" onchange="toggleDefense('ddos')"><span class="slider"></span></label>
-        </div>
     </div>
 
     <div class="panel visualizer">
@@ -205,16 +253,16 @@
 
 <div class="control-deck">
     <div style="font-weight:bold; color:#888; margin-right:20px;">LIVE PAYLOAD TEST:</div>
-    <input type="text" id="payloadInput" placeholder="Enter payload to test defenses (e.g., <script>alert(1)</script>)" 
+    <input type="text" id="payloadInput" placeholder="Enter payload to test defenses (e.g., ' OR 1=1 --)" 
            style="flex-grow: 1; padding: 10px; background: #000; border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; border-radius: 4px;">
     <button class="attack-btn" onclick="testPayload()">LAUNCH TEST</button>
 </div>
 
 <script>
     // DEFENSE STATE
-    const defenses = { sqli: false, xss: false, auth: false, ddos: false };
+    const defenses = { sqli: false, xss: false, cmd: false, acl: false, crypto: false, rate: false, config: false, ssrf: false, ssti: false };
     let health = 100;
-    const damageMap = { sqli: 25, xss: 15, auth: 10 };
+    const damageMap = { sqli: 25, xss: 15, cmd: 10, acl: 20, crypto: 15, ssrf: 18, ssti: 12 };
 
     const shieldIcon = document.getElementById('shield-icon');
     const logFeed = document.getElementById('log-feed');
@@ -230,44 +278,104 @@
         addLog(`[CONFIG] ${type.toUpperCase()} PROTECTION ${defenses[type] ? 'ENABLED' : 'DISABLED'}`, 'sys');
     }
     
-    // Function to sanitize/validate the input (This is the CORE WAF logic)
     function sanitizePayload(payload) {
         let sanitizedPayload = payload;
         let blockedTypes = [];
-
-        // 1. SQLi Defense (Looks for common SQL tokens)
-        const sqliRegex = /(\s*OR\s*|\s*UNION\s*|\s*SELECT\s*|\s*DROP\s*|\-\-\s*)/i;
-        if (defenses.sqli && sqliRegex.test(sanitizedPayload)) {
-            // Simple replacement for demonstration
-            sanitizedPayload = sanitizedPayload.replace(sqliRegex, ' BLOCKED_SQL_TOKEN ');
-            blockedTypes.push('SQLI');
+        let damageLevel = 0;
+        
+        // --- INJECTION & EXECUTION CHECKS (A03) ---
+        
+        // 1. SQLi Filter
+        const sqliRegex = /(\s*OR\s*\d=\d\s*|\s*UNION\s*SELECT\s*|\s*DROP\s*TABLE\s*|\-\-\s*|\s*XOR\s*)/i;
+        if (sqliRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.sqli;
+            if (defenses.sqli) {
+                sanitizedPayload = sanitizedPayload.replace(sqliRegex, ' BLOCKED_SQL_TOKEN ');
+                blockedTypes.push('A03:SQLI');
+            }
         }
 
-        // 2. XSS Defense (Looks for script tags and event handlers)
-        const xssRegex = /(<\s*script\s*>|on\w+=\s*("|')?)/gi;
-        if (defenses.xss && xssRegex.test(sanitizedPayload)) {
-            // HTML entity encoding
-            sanitizedPayload = sanitizedPayload.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            blockedTypes.push('XSS');
+        // 2. XSS Sanitizer
+        const xssRegex = /(<\s*script\s*>|alert\s*\(\s*|on\w+=\s*("|')?|javascript\s*:)/gi;
+        if (xssRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.xss;
+            if (defenses.xss) {
+                // HTML entity encoding
+                sanitizedPayload = sanitizedPayload.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                blockedTypes.push('A03:XSS');
+            }
         }
 
-        // 3. Command Injection Defense (Simple test for OS commands)
-        const cmdRegex = /(\s*&&|\s*\|\||\s*`|\s*;/g);
-        if (defenses.auth && cmdRegex.test(sanitizedPayload)) {
-            // Escaping/removal
-            sanitizedPayload = sanitizedPayload.replace(cmdRegex, ' BLOCKED_CMD ');
-            blockedTypes.push('CMD_INJ');
+        // 3. Command Injection Guard
+        const cmdRegex = /(\s*&&|\s*\|\||\s*`|\s*;|\s*nc\s*|\s*sh\s*|\s*bash\s*)/g;
+        if (cmdRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.cmd;
+            if (defenses.cmd) {
+                sanitizedPayload = sanitizedPayload.replace(cmdRegex, ' BLOCKED_CMD ');
+                blockedTypes.push('A03:CMD_INJ');
+            }
         }
         
-        // DUMMY LOGIC for DDoS/Rate Limit - just checks for a long string sequence to simulate a flood
-        if (defenses.ddos && payload.length > 100) {
-            blockedTypes.push('RATE_LIMIT');
+        // --- ACCESS CONTROL & CONFIGURATION CHECKS ---
+        
+        // 4. ACL Guard (A01: Broken Access Control - Path Traversal)
+        const aclRegex = /(\.\.\/|\.\.\\|etc\/passwd|admin_only|user_id=\s*\d\d?\d?\d\d\d)/i;
+        if (aclRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.acl;
+            if (defenses.acl) {
+                sanitizedPayload = sanitizedPayload.replace(aclRegex, ' [BLOCKED_ACCESS_ATTEMPT] ');
+                blockedTypes.push('A01:ACL');
+            }
         }
 
-        return { sanitized: sanitizedPayload, blocked: blockedTypes };
+        // 5. Default Config Detector (A05: Security Misconfiguration)
+        const configRegex = /(jsessionid=123|user=admin|defaultpassword|testcookie)/i;
+        if (configRegex.test(sanitizedPayload)) {
+            damageLevel += 5;
+            if (defenses.config) {
+                blockedTypes.push('A05:MISCONFIG');
+            }
+        }
+
+        // --- DATA AND REQUEST CHECKS ---
+        
+        // 6. Crypto Failure Detect (A02: Cryptographic Failures)
+        const cryptoRegex = /(password=|\s*api_key\s*=\s*\w{8,}|\s*token\s*=\s*\w{8,})/i;
+        if (cryptoRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.crypto;
+            if (defenses.crypto) {
+                sanitizedPayload = sanitizedPayload.replace(cryptoRegex, ' [REDACTED_SENSITIVE_DATA] ');
+                blockedTypes.push('A02:PLAINTEXT');
+            }
+        }
+        
+        // 7. SSRF Filter (A07: Server-Side Request Forgery)
+        const ssrfRegex = /(127\.0\.0\.1|localhost|192\.168\.|10\.\d+\.\d+\.\d+)/i;
+        if (ssrfRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.ssrf;
+            if (defenses.ssrf) {
+                blockedTypes.push('A07:SSRF_BLOCK');
+            }
+        }
+        
+        // 8. SSTI Blocker (A10: Server-Side Template Injection)
+        const sstiRegex = /(\$\{\s*|\{\{\s*|\{\%\s*|runtime\.)/i;
+        if (sstiRegex.test(sanitizedPayload)) {
+            damageLevel += damageMap.ssti;
+            if (defenses.ssti) {
+                sanitizedPayload = sanitizedPayload.replace(sstiRegex, ' [BLOCKED_SSTI_MARKER] ');
+                blockedTypes.push('A10:SSTI');
+            }
+        }
+        
+        // 9. Rate Limiter (A04/DDoS Proxy)
+        if (defenses.rate && payload.length > 100) {
+            blockedTypes.push('A04:RATE_LIMIT');
+        }
+
+        return { sanitized: sanitizedPayload, blocked: blockedTypes, damage: damageLevel };
     }
 
-    // Function to handle the interactive test
     function testPayload() {
         const rawPayload = document.getElementById('payloadInput').value.trim();
         if (!rawPayload) {
@@ -279,31 +387,32 @@
         shieldIcon.classList.add('shake-anim');
         setTimeout(() => shieldIcon.classList.remove('shake-anim'), 500);
 
-        const { sanitized, blocked } = sanitizePayload(rawPayload);
+        const { sanitized, blocked, damage } = sanitizePayload(rawPayload);
         
-        // Check if the payload is inherently malicious (even if blocked)
-        const isMalicious = blocked.length > 0 || /script|select|union|alert|cookie|drop|exec|mkdir/i.test(rawPayload);
+        // Check if payload was potentially malicious (high damage means it was malicious)
+        const isMalicious = damage > 0;
 
         if (blocked.length > 0) {
             // BLOCKED SCENARIO
             shieldPulse('blue');
-            addLog(`[BLOCKED] WAF ENGAGED (${blocked.join(', ')}).\nRAW: ${rawPayload}\nSAFE: ${sanitized}`, 'blk');
+            addLog(`[BLOCKED] WAF ENGAGED (${blocked.join(', ')}).\nRAW: ${rawPayload}`, 'blk');
             
         } else if (isMalicious) {
-            // BREACHED SCENARIO (Payload was malicious, but WAF was off/missed it)
+            // BREACHED SCENARIO (Malicious payload with no active defense)
             shieldPulse('red');
-            damageHealth(damageMap.sqli); // Use a baseline damage
-            addLog(`[BREACH] PAYLOAD EXECUTED! No active module caught it.\nPAYLOAD: ${rawPayload}\nRESULT: ${sanitized}`, 'breach');
+            damageHealth(damage); 
+            addLog(`[BREACH] PAYLOAD EXECUTED! No active module caught the ${rawPayload.substring(0, 30)}... attack.`, 'breach');
             
         } else {
             // SAFE INPUT SCENARIO
             shieldPulse('green');
-            addLog(`[PASS] Input processed successfully.\nINPUT: ${rawPayload}`, 'sys');
+            addLog(`[PASS] Input processed successfully.`, 'sys');
         }
     }
 
 
     function shieldPulse(color) {
+        // ... (Pulse animation CSS function - remains the same)
         if(color === 'red') {
             shieldIcon.style.borderColor = 'var(--neon-red)';
             shieldIcon.style.color = 'var(--neon-red)';
@@ -328,10 +437,11 @@
     function damageHealth(amount) {
         health = Math.max(0, health - amount);
         healthFill.style.width = health + '%';
-        healthText.innerText = health + '%';
+        healthText.innerText = Math.round(health) + '%';
         
         if (health < 30) healthFill.style.background = 'var(--neon-red)';
         else if (health < 70) healthFill.style.background = 'var(--neon-amber)';
+        else healthFill.style.background = 'var(--neon-green)';
         
         if (health === 0) {
             addLog(`[CRITICAL] SYSTEM FAILURE. APP OFFLINE.`, 'breach');
@@ -354,6 +464,7 @@
 
     function clearLogs() {
         logFeed.innerHTML = '';
+        addLog(`[SYSTEM] Log feed cleared.`, 'sys');
     }
 </script>
 
