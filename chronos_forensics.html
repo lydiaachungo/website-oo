@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chronos Forensics 2.0 | Attack Reconstruction</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-primary: #0a1128;
+        --bg-secondary: #0d1e3a;
+        --text-primary: #e0e7ff;
+        --text-secondary: #8c9eff;
+        --accent-timeline: #00bcd4;
+        --risk-high: #ef4444;
+        --risk-medium: #f97316;
+        --risk-low: #facc15;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Roboto Mono', monospace;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+    h1 {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--accent-timeline);
+        text-align: center;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+        font-size: 1.8rem;
+    }
+    .main-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        flex-grow: 1;
+    }
+    .input-panel, .output-panel {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(0, 188, 212, 0.2);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .input-controls {
+        display: flex; gap: 10px; margin-bottom: 15px;
+    }
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-primary { background: var(--accent-timeline); color: var(--bg-primary); }
+    .btn-primary:hover { background: #00e5ff; }
+    .btn-secondary { background: #3f51b5; color: var(--text-primary); }
+    .btn-secondary:hover { background: #5c6bc0; }
+    textarea {
+        width: 100%;
+        min-height: 250px;
+        background: #000;
+        border: 1px solid var(--accent-timeline);
+        color: var(--text-primary);
+        padding: 10px;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+        resize: vertical;
+    }
+
+    /* TIMELINE STYLES */
+    #timeline-view {
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+    .timeline-event {
+        border-left: 3px solid var(--accent-timeline);
+        padding: 10px 0 10px 15px;
+        position: relative;
+        margin-left: 10px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .timeline-event:hover {
+        background: rgba(0, 188, 212, 0.05);
+    }
+    .event-dot {
+        position: absolute;
+        left: -19px;
+        top: 10px;
+        width: 10px;
+        height: 10px;
+        background: var(--accent-timeline);
+        border-radius: 50%;
+        border: 3px solid var(--bg-secondary);
+    }
+    .event-time { color: var(--text-secondary); font-size: 0.75rem; display: block; margin-bottom: 5px; }
+    .event-source { font-size: 0.8rem; font-weight: 700; display: inline-block; padding: 2px 5px; border-radius: 3px; margin-right: 10px; }
+    
+    .source-web { background: #facc15; color: #000; }
+    .source-auth { background: #3f51b5; color: #fff; }
+    .source-fw { background: #ef4444; color: #fff; }
+    
+    .risk-score { font-size: 0.8rem; font-weight: bold; margin-left: 10px; }
+    .risk-score.high { color: var(--risk-high); }
+    .risk-score.medium { color: var(--risk-medium); }
+    .risk-score.low { color: var(--risk-low); }
+
+    /* REPORTING & SUMMARY */
+    #summary-report h3 { color: var(--text-secondary); margin-top: 15px; border-bottom: 1px dashed #3f51b5; padding-bottom: 5px; }
+    #summary-report p { font-size: 0.9rem; margin-top: 5px; }
+    .status-box {
+        padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; margin-bottom: 15px;
+    }
+    .status-investigating { background: var(--risk-medium); color: var(--bg-secondary); }
+    .status-remediated { background: var(--accent-timeline); color: var(--bg-secondary); }
+
+</style>
+</head>
+<body>
+
+<h1><i class="fas fa-microscope"></i> Chronos Forensics 2.0: Attack Reconstruction</h1>
+
+<div class="main-container">
+
+    <div class="input-panel">
+        <h2 style="color:var(--text-secondary); margin-bottom: 15px;">1. Log Ingestion & Scenario Selection</h2>
+        
+        <div class="input-controls">
+            <button class="btn btn-secondary" onclick="loadScenario(1)">Scenario 1: Brute Force & Pivot</button>
+            <button class="btn btn-secondary" onclick="loadScenario(2)">Scenario 2: SQLi to Recon</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('rawLogs').value = ''">Clear Logs</button>
+        </div>
+        
+        <textarea id="rawLogs" placeholder="Paste raw log data here (or load a scenario). Must contain Timestamp, IP, and event details."></textarea>
+        
+        <button class="btn btn-primary" onclick="analyzeLogs()">
+            <i class="fas fa-brain"></i> RUN CORRELATION ENGINE
+        </button>
+    </div>
+
+    <div class="output-panel">
+        <h2 style="color:var(--text-secondary); margin-bottom: 15px;">2. Incident Timeline & Triage</h2>
+
+        <div id="incident-status" class="status-box status-investigating">
+            STATUS: INVESTIGATING (Awaiting Analysis)
+        </div>
+
+        <div id="timeline-view">
+            <p style="text-align:center; color:#5c6bc0;">Timeline will appear here after correlation.</p>
+        </div>
+
+        <div id="summary-report">
+            <h3>Incident Summary & Risk Score</h3>
+            <p id="risk-score-total">Total Risk Score: N/A</p>
+            <p id="initial-access">Initial Access Vector: N/A</p>
+
+            <h3>Remediation Suggestions</h3>
+            <ul id="remediation-list" style="list-style: none; padding-left: 0;">
+                <li style="color:#8c9eff;">* Run correlation engine to generate suggestions.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATA NORMALIZATION MAPPINGS ---
+    const eventMaps = [
+        // Web Server Events (Apache Access Log format)
+        { regex: /^(?:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).+?\[(.+?)\]\s+?"(GET|POST|PUT)\s+(.+?)\s+?HTTP.*?(\d+))\s+(\d+)\s*$/, source: 'WEB', 
+          type: (m) => m[5] >= 400 ? 'Access Denied' : m[4].includes('admin') ? 'Admin Recon' : 'Web Request', 
+          risk: (m) => m[5] >= 400 ? 5 : m[4].includes('admin') ? 10 : 1, timeIndex: 2, ipIndex: 1, detailIndex: 4 },
+
+        // Authentication Events (Auth Log format)
+        { regex: /\[Auth\]\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\s+USER:\s+(.+?)\s+IP:\s+(.+?)\s+STATUS:\s+(SUCCESS|FAILED)\s*$/, source: 'AUTH', 
+          type: (m) => m[4] === 'SUCCESS' ? 'Login Success' : 'Login Failed', 
+          risk: (m) => m[4] === 'FAILED' ? 7 : 1, timeIndex: 1, ipIndex: 3, detailIndex: 2 },
+        
+        // Firewall Events (Simple Firewall Log format)
+        { regex: /\[FW\]\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\s+SRC=(.+?)\s+DST=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+ACTION=(DROP|ALLOW)\s+PORT=(\d+)\s+$/i, source: 'FW', 
+          type: (m) => m[3] === 'DROP' ? 'Firewall Block' : 'Firewall Allow', 
+          risk: (m) => m[4] === '22' && m[3] === 'DROP' ? 3 : m[3] === 'DROP' ? 2 : 0, timeIndex: 1, ipIndex: 2, detailIndex: 4 }
+    ];
+
+    function parseLogs(rawLogs) {
+        const lines = rawLogs.trim().split('\n');
+        let normalizedEvents = [];
+
+        lines.forEach(line => {
+            let foundMatch = false;
+            for (const map of eventMaps) {
+                const match = line.match(map.regex);
+                if (match) {
+                    // Normalize the timestamp
+                    let time = new Date(match[map.timeIndex].replace(/[/:]/g, ' '));
+                    
+                    normalizedEvents.push({
+                        timestamp: time.getTime(),
+                        timeString: time.toLocaleTimeString(),
+                        source: map.source,
+                        type: map.type(match),
+                        ip: match[map.ipIndex],
+                        riskScore: map.risk(match),
+                        raw: line,
+                        details: match[map.detailIndex]
+                    });
+                    foundMatch = true;
+                    break;
+                }
+            }
+            if (!foundMatch && line.trim() !== '') {
+                console.warn("Unmatched log line:", line);
+            }
+        });
+
+        // Sort events chronologically
+        return normalizedEvents.sort((a, b) => a.timestamp - b.timestamp);
+    }
+
+    function analyzeLogs() {
+        const rawLogs = document.getElementById('rawLogs').value;
+        if (!rawLogs) {
+            alert("Please load logs before running the engine.");
+            return;
+        }
+
+        // 1. Parse and Normalize
+        const events = parseLogs(rawLogs);
+        
+        // 2. Correlation and Triage
+        const { totalScore, initialVector, remediation, timelineHTML } = correlateAndTriage(events);
+        
+        // 3. Update UI
+        updateUI(totalScore, initialVector, remediation, timelineHTML);
+    }
+
+    function correlateAndTriage(events) {
+        let totalScore = 0;
+        let timelineHTML = '';
+        let initialVector = 'Unknown';
+        const uniqueIPs = new Set();
+        const remediation = new Set();
+        let firstHighRisk = true;
+
+        events.forEach(event => {
+            totalScore += event.riskScore;
+            uniqueIPs.add(event.ip);
+            
+            // LOGIC FOR INITIAL VECTOR AND REMEDIATION
+            if (firstHighRisk && event.riskScore > 5) {
+                initialVector = `${event.type} from IP ${event.ip}`;
+                remediation.add(`Immediately block IP ${event.ip} at the perimeter firewall.`);
+                firstHighRisk = false;
+            }
+            if (event.type === 'Login Failed' && event.riskScore > 0) {
+                 remediation.add(`Review authentication logs for user ${event.details} for brute force attempts.`);
+            }
+
+            // BUILD HTML TIMELINE
+            let riskClass = event.riskScore > 10 ? 'high' : event.riskScore > 5 ? 'medium' : 'low';
+            let sourceClass = `source-${event.source.toLowerCase()}`;
+            
+            timelineHTML += `
+                <div class="timeline-event" title="Raw: ${event.raw}">
+                    <div class="event-dot"></div>
+                    <span class="event-time">${event.timeString}</span>
+                    <span class="event-source ${sourceClass}">${event.source}</span>
+                    ${event.type} 
+                    <span class="risk-score ${riskClass}">(${event.riskScore} RISKSCORE)</span>
+                </div>
+            `;
+        });
+        
+        if (uniqueIPs.size > 1) {
+            remediation.add(`Multiple unique IPs (${uniqueIPs.size}) involved. Check for lateral movement.`);
+        }
+
+        return { totalScore, initialVector, remediation: Array.from(remediation), timelineHTML };
+    }
+
+    function updateUI(totalScore, initialVector, remediation, timelineHTML) {
+        const statusEl = document.getElementById('incident-status');
+        const totalScoreEl = document.getElementById('risk-score-total');
+        const initialAccessEl = document.getElementById('initial-access');
+        const timelineEl = document.getElementById('timeline-view');
+        const remediationListEl = document.getElementById('remediation-list');
+
+        timelineEl.innerHTML = timelineHTML;
+        
+        // Update Status and Score
+        totalScoreEl.innerHTML = `Total Risk Score: <span class="risk-score ${totalScore >= 50 ? 'high' : totalScore >= 20 ? 'medium' : 'low'}">${totalScore}</span>`;
+        initialAccessEl.textContent = `Initial Access Vector: ${initialVector}`;
+        
+        if (totalScore > 0) {
+            statusEl.classList.remove('status-investigating');
+            statusEl.classList.add('status-remediated');
+            statusEl.innerHTML = `STATUS: **CONTAINED** (Score: ${totalScore})`;
+        } else {
+            statusEl.classList.remove('status-remediated');
+            statusEl.classList.add('status-investigating');
+            statusEl.innerHTML = `STATUS: **CLEAN** (No Threats Detected)`;
+        }
+        
+        // Update Remediation List
+        remediationListEl.innerHTML = remediation.map(item => `
+            <li style="margin-top: 5px;"><i class="fas fa-check-circle" style="color:var(--accent-timeline);"></i> ${item}</li>
+        `).join('');
+
+        // Scroll to top of timeline
+        timelineEl.scrollTop = 0;
+    }
+
+    // --- SCENARIO DATA ---
+    function loadScenario(scenario) {
+        let logs = '';
+        if (scenario === 1) {
+            logs = `
+[Auth] 2025-12-08T10:00:00 USER: admin IP: 10.1.1.5 STATUS: FAILED
+[Auth] 2025-12-08T10:00:01 USER: admin IP: 10.1.1.5 STATUS: FAILED
+[Auth] 2025-12-08T10:00:02 USER: admin IP: 10.1.1.5 STATUS: FAILED
+[FW] 2025-12-08T10:00:03 SRC=10.1.1.5 DST=192.168.1.1 ACTION=DROP PORT=22
+10.1.1.5 - user [08/Dec/2025:10:00:04] "GET /login HTTP/1.1" 401 190
+[Auth] 2025-12-08T10:00:05 USER: admin IP: 10.1.1.5 STATUS: SUCCESS
+10.1.1.5 - user [08/Dec/2025:10:00:06] "GET /admin/settings HTTP/1.1" 200 4500
+[FW] 2025-12-08T10:00:07 SRC=10.1.1.5 DST=192.168.1.5 ACTION=ALLOW PORT=80
+            `;
+        } else if (scenario === 2) {
+            logs = `
+192.168.1.10 - user [08/Dec/2025:11:00:00] "GET /index.php?id=' OR 1=1 -- HTTP/1.1" 200 1200
+[FW] 2025-12-08T11:00:01 SRC=192.168.1.10 DST=192.168.1.1 ACTION=ALLOW PORT=443
+192.168.1.10 - user [08/Dec/2025:11:00:02] "GET /data/users.csv HTTP/1.1" 403 150
+[Auth] 2025-12-08T11:00:03 USER: guest IP: 192.168.1.10 STATUS: FAILED
+192.168.1.10 - user [08/Dec/2025:11:00:04] "GET /admin/backup.zip HTTP/1.1" 404 180
+[Auth] 2025-12-08T11:00:05 USER: guest IP: 192.168.1.10 STATUS: FAILED
+            `;
+        }
+        document.getElementById('rawLogs').value = logs.trim();
+    }
+</script>
+</body>
+</html>
