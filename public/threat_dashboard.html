@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLOBAL THREAT INTEL | LIVE FEED</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    :root {
+        --bg: #050505;
+        --panel: rgba(20, 20, 20, 0.8);
+        --border: #333;
+        --accent: #00f2ff; /* Cyan */
+        --alert: #ff003c;  /* Cyber Red */
+        --warn: #ffcc00;   /* Amber */
+        --grid: rgba(0, 242, 255, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: var(--bg);
+        color: #fff;
+        font-family: 'Share Tech Mono', monospace;
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 60px 1fr 280px;
+        background-image: 
+            linear-gradient(var(--grid) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    /* CRT SCANLINE OVERLAY */
+    body::after {
+        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none; z-index: 999;
+    }
+
+    /* HEADER */
+    header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 20px; border-bottom: 2px solid var(--accent);
+        background: rgba(0, 20, 30, 0.9); z-index: 10;
+    }
+    .logo { font-family: 'Rajdhani', sans-serif; font-size: 1.8rem; font-weight: bold; letter-spacing: 2px; }
+    .logo span { color: var(--accent); }
+
+    .defcon-widget {
+        display: flex; align-items: center; gap: 15px; border: 1px solid var(--border); padding: 5px 15px;
+    }
+    .defcon-level {
+        font-size: 1.5rem; font-weight: bold; color: var(--alert);
+        text-shadow: 0 0 10px var(--alert); animation: pulse 1s infinite;
+    }
+
+    /* MAIN: MAP AREA */
+    .map-section {
+        position: relative; overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .world-map {
+        width: 80%; opacity: 0.4; filter: drop-shadow(0 0 10px var(--accent));
+        mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    }
+    
+    /* Attack Pings */
+    .ping {
+        position: absolute; width: 6px; height: 6px; background: var(--alert); border-radius: 50%;
+        box-shadow: 0 0 15px var(--alert); animation: ping 1.5s ease-out forwards;
+    }
+    @keyframes ping { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(8); } }
+
+    /* DASHBOARD GRID (Bottom) */
+    .intel-grid {
+        display: grid; grid-template-columns: 350px 1fr 400px;
+        background: var(--panel); border-top: 1px solid var(--accent);
+        backdrop-filter: blur(10px);
+    }
+
+    .panel {
+        padding: 15px; border-right: 1px solid var(--border);
+        display: flex; flex-direction: column; overflow: hidden;
+    }
+    .panel-header {
+        color: var(--accent); font-size: 0.9rem; margin-bottom: 10px;
+        display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 5px;
+    }
+
+    /* DATA FEEDS */
+    .ioc-list { font-size: 0.75rem; color: #888; overflow-y: auto; }
+    .ioc-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #222; }
+    .ioc-risk { color: var(--alert); font-weight: bold; }
+    
+    .stat-big { font-size: 2.5rem; color: #fff; font-weight: bold; }
+    .stat-label { font-size: 0.8rem; color: #666; }
+
+    /* BUTTONS */
+    .action-btn {
+        background: transparent; border: 1px solid var(--accent); color: var(--accent);
+        padding: 5px 15px; font-family: 'Share Tech Mono', monospace; cursor: pointer;
+        transition: 0.3s; text-decoration: none; display: inline-block;
+    }
+    .action-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo">THREAT<span>MAP</span> // GLOBAL_INTEL</div>
+    
+    <div class="defcon-widget">
+        <span>CURRENT THREAT LEVEL:</span>
+        <span class="defcon-level" id="defcon-text">ELEVATED</span>
+    </div>
+
+    <a href="index.html" class="action-btn">EXIT SYSTEM</a>
+</header>
+
+<div class="map-section" id="map-area">
+    <svg class="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50,100 Q150,50 250,100 T450,150 T650,100 T850,150" fill="none" stroke="rgba(0, 242, 255, 0.3)" stroke-width="2"/>
+        <path fill="rgba(0, 242, 255, 0.1)" stroke="var(--accent)" stroke-width="1" d="M150,100 L200,80 L220,120 L180,150 Z" /> <path fill="rgba(0, 242, 255, 0.1)" stroke="var(--accent)" stroke-width="1" d="M450,100 L500,80 L550,120 L480,160 Z" /> <path fill="rgba(0, 242, 255, 0.1)" stroke="var(--accent)" stroke-width="1" d="M700,120 L750,100 L800,140 L720,180 Z" /> </svg>
+    <div style="position:absolute; bottom:20px; left:20px; color:#555; font-size:0.8rem;">
+        > LIVE CONNECTION ESTABLISHED<br>
+        > MONITORING 42,000+ SENSORS
+    </div>
+</div>
+
+<div class="intel-grid">
+    
+    <div class="panel">
+        <div class="panel-header">
+            <span>LIVE INDICATORS (IOC)</span>
+            <span class="ioc-risk">CRITICAL</span>
+        </div>
+        <div class="ioc-list" id="ioc-feed">
+            </div>
+    </div>
+
+    <div class="panel" style="justify-content:center; align-items:center;">
+        <canvas id="attackChart" style="max-height: 200px; width:100%;"></canvas>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">TOP THREAT GROUPS (24H)</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div>
+                <div class="stat-big" id="attacks-count">8,402</div>
+                <div class="stat-label">TOTAL INCIDENTS</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="stat-big" style="color:var(--warn);">APT-29</div>
+                <div class="stat-label">MOST ACTIVE</div>
+            </div>
+        </div>
+        
+        <div style="background:#111; padding:10px; border:1px solid #333; font-size:0.8rem; color:#aaa;">
+            > APT-28 (FANCY BEAR) - Phishing Campaign<br>
+            > LAZARUS GROUP - Crypto Exfiltration<br>
+            > WIZARD SPIDER - Ransomware Ops
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. CONFIGURATION ---
+    const mapArea = document.getElementById('map-area');
+    const iocFeed = document.getElementById('ioc-feed');
+    const attacksCounter = document.getElementById('attacks-count');
+    const defconText = document.getElementById('defcon-text');
+    let totalAttacks = 8402;
+
+    // --- 2. CHART.JS SETUP ---
+    const ctx = document.getElementById('attackChart').getContext('2d');
+    const attackChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+            datasets: [{
+                label: 'ATTACK VOLUME',
+                data: [120, 190, 300, 500, 200, 350],
+                borderColor: '#00f2ff',
+                backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#666' }, grid: { display: false } },
+                y: { ticks: { color: '#666' }, grid: { color: '#333' } }
+            },
+            animation: false // Performance optimization
+        }
+    });
+
+    // --- 3. ANIMATION LOGIC ---
+    
+    // Generate Random IP
+    function randomIP() {
+        return `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+    }
+
+    // Generate Attack Ping on Map
+    function triggerAttack() {
+        const ping = document.createElement('div');
+        ping.className = 'ping';
+        
+        // Randomize position within map bounds (approximate)
+        const top = Math.random() * 60 + 20; // 20% to 80% height
+        const left = Math.random() * 80 + 10; // 10% to 90% width
+        
+        ping.style.top = top + '%';
+        ping.style.left = left + '%';
+        
+        mapArea.appendChild(ping);
+        
+        // Remove after animation
+        setTimeout(() => ping.remove(), 1500);
+
+        // Update Stats
+        totalAttacks++;
+        attacksCounter.innerText = totalAttacks.toLocaleString();
+        
+        // Update Chart Data (Simulated live feed)
+        const lastVal = attackChart.data.datasets[0].data[5];
+        const newVal = lastVal + Math.floor(Math.random() * 10 - 3);
+        attackChart.data.datasets[0].data.shift();
+        attackChart.data.datasets[0].data.push(newVal);
+        attackChart.update();
+
+        // Add Log Entry
+        addLogEntry();
+    }
+
+    function addLogEntry() {
+        const div = document.createElement('div');
+        div.className = 'ioc-item';
+        
+        const threats = ['MALWARE_C2', 'SQL_INJECTION', 'SSH_BRUTE', 'DDOS_FLOOD'];
+        const threat = threats[Math.floor(Math.random() * threats.length)];
+        
+        div.innerHTML = `
+            <span>${randomIP()}</span>
+            <span style="color:#fff">${threat}</span>
+            <span class="ioc-risk">BLK</span>
+        `;
+        
+        iocFeed.prepend(div);
+        if(iocFeed.children.length > 15) iocFeed.removeChild(iocFeed.lastChild);
+    }
+
+    // --- 4. START SIMULATION ---
+    // Fast interval for "Busy" look
+    setInterval(triggerAttack, 800);
+
+    // Occasional "Massive Spike"
+    setInterval(() => {
+        defconText.innerText = "CRITICAL";
+        defconText.style.color = "red";
+        setTimeout(() => {
+            defconText.innerText = "ELEVATED";
+            defconText.style.color = "#ff003c";
+        }, 3000);
+    }, 10000);
+
+</script>
+
+</body>
+</html>
