@@ -1,16 +1,48 @@
-# React + Vite
+# 🛡️ Advanced Cybersecurity Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Live Deployment:** [View Portfolio](https://your-site.vercel.app)
 
-Currently, two official plugins are available:
+## 📋 Mission Brief
+This repository hosts a suite of interactive security tools designed to demonstrate core competencies in **Offensive Security**, **Defensive Hardening**, and **Threat Analysis**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Unlike static portfolios, these tools are **live simulations** running in the browser, demonstrating real-world attack vectors and defense mechanisms.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Operational Modules
 
-## Expanding the ESLint configuration
+### 1. [SecureGen Pro (Cryptography)](./password_generator.html)
+A client-side encryption tool demonstrating high-entropy password generation.
+- **Tech Stack:** JavaScript Crypto API (CSPRNG), Math.log2 for Entropy Calculation.
+- **Features:**
+  - Real-time "Crack Time" estimation based on current GPU hash rates (RTX 4090).
+  - Visual "Matrix" decryption animation.
+  - Browser fingerprinting awareness.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 2. [WAF Defense Lab (Blue Team)](./bruteforce_sim.html)
+A simulated Security Operations Center (SOC) dashboard monitoring a live brute-force attack.
+- **Concept:** Demonstrates Rate Limiting and WAF (Web Application Firewall) logic.
+- **Key Features:**
+  - **Live Telemetry:** Visualizes HTTP traffic spikes.
+  - **Active Defense:** Includes manual "Kill Switch" and adjustable threshold sliders.
+  - **Packet Inspection:** Displays raw HTTP headers of the attacker (Hydra/9.1).
+
+### 3. [Phishing Simulation (Social Engineering)](./phishing_sim.html)
+A controlled environment simulating an Adversary-in-the-Middle (AiTM) attack.
+- **Concept:** Educates users on MFA Bypass techniques (Evilginx2 logic).
+- **Forensics:**
+  - Captures and displays "Exfiltrated" credentials locally (Safe Mode).
+  - Performs **Device Fingerprinting** (OS/Browser Detection) to demonstrate metadata theft.
+
+---
+
+## 💻 Technical Architecture
+- **Frontend:** HTML5, CSS3 (Cyber-Warfare UI Theme), Vanilla JavaScript (ES6+).
+- **Deployment:** Vercel Edge Network.
+- **Security:** All logic is client-side; no data is actually transmitted or stored.
+
+## 👤 Author
+**Lydia Achungo**
+*Cybersecurity Analyst & Pentester*
+
+> "You cannot defend what you do not understand."
