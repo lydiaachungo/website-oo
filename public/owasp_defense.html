@@ -27,7 +27,7 @@
         height: 100vh;
         overflow: hidden;
         display: grid;
-        grid-template-rows: 70px 1fr 200px;
+        grid-template-rows: 70px 1fr 100px; /* Reduced space for the control deck */
         background-image: radial-gradient(circle at 50% 50%, #0a1525 0%, #030508 100%);
     }
 
@@ -167,16 +167,16 @@
 
         <div class="module" id="mod-auth">
             <div>
-                <div style="font-weight:bold;">AUTH GUARD</div>
-                <div style="font-size:0.7rem; color:#888;">Stops Brute Force (OWASP A07)</div>
+                <div style="font-weight:bold;">CMD INJECTION GUARD</div>
+                <div style="font-size:0.7rem; color:#888;">Stops OS Command Execution (OWASP A03)</div>
             </div>
             <label class="switch"><input type="checkbox" onchange="toggleDefense('auth')"><span class="slider"></span></label>
         </div>
 
         <div class="module" id="mod-ddos">
             <div>
-                <div style="font-weight:bold;">RATE LIMITER</div>
-                <div style="font-size:0.7rem; color:#888;">Mitigates DoS/Bot Traffic</div>
+                <div style="font-weight:bold;">RATE LIMITER (DUMMY)</div>
+                <div style="font-size:0.7rem; color:#888;">Simulates DoS/Bot Mitigation (A04)</div>
             </div>
             <label class="switch"><input type="checkbox" onchange="toggleDefense('ddos')"><span class="slider"></span></label>
         </div>
@@ -197,36 +197,29 @@
         <div class="log-feed" id="log-feed">
             <div class="log-item">
                 <span class="log-ts">[SYSTEM]</span> WAF INITIALIZED...<br>
-                <span style="color:#888;">Waiting for traffic...</span>
+                <span style="color:#888;">Enter payloads below to begin testing.</span>
             </div>
         </div>
     </div>
 </div>
 
 <div class="control-deck">
-    <div style="font-weight:bold; color:#888; margin-right:20px;">PENETRATION TEST LAUNCHER:</div>
-    <button class="attack-btn" onclick="launchAttack('sqli')">SQL INJECTION</button>
-    <button class="attack-btn" onclick="launchAttack('xss')">XSS SCRIPT</button>
-    <button class="attack-btn" onclick="launchAttack('auth')">BRUTE FORCE</button>
-    <button class="attack-btn" onclick="launchAttack('ddos')">DDoS FLOOD</button>
+    <div style="font-weight:bold; color:#888; margin-right:20px;">LIVE PAYLOAD TEST:</div>
+    <input type="text" id="payloadInput" placeholder="Enter payload to test defenses (e.g., <script>alert(1)</script>)" 
+           style="flex-grow: 1; padding: 10px; background: #000; border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; border-radius: 4px;">
+    <button class="attack-btn" onclick="testPayload()">LAUNCH TEST</button>
 </div>
 
 <script>
     // DEFENSE STATE
     const defenses = { sqli: false, xss: false, auth: false, ddos: false };
     let health = 100;
+    const damageMap = { sqli: 25, xss: 15, auth: 10 };
+
     const shieldIcon = document.getElementById('shield-icon');
     const logFeed = document.getElementById('log-feed');
     const healthFill = document.getElementById('health-fill');
     const healthText = document.getElementById('health-text');
-
-    // PAYLOADS FOR REALISM
-    const payloads = {
-        sqli: "' OR 1=1; DROP TABLE users; --",
-        xss: "<script>alert('Your Session is Stolen')</script>",
-        auth: "admin / password123 (Attempt 502)",
-        ddos: "SYN FLOOD [10,000 PACKETS/SEC]"
-    };
 
     function toggleDefense(type) {
         defenses[type] = !defenses[type];
@@ -236,31 +229,89 @@
         
         addLog(`[CONFIG] ${type.toUpperCase()} PROTECTION ${defenses[type] ? 'ENABLED' : 'DISABLED'}`, 'sys');
     }
+    
+    // Function to sanitize/validate the input (This is the CORE WAF logic)
+    function sanitizePayload(payload) {
+        let sanitizedPayload = payload;
+        let blockedTypes = [];
 
-    function launchAttack(type) {
+        // 1. SQLi Defense (Looks for common SQL tokens)
+        const sqliRegex = /(\s*OR\s*|\s*UNION\s*|\s*SELECT\s*|\s*DROP\s*|\-\-\s*)/i;
+        if (defenses.sqli && sqliRegex.test(sanitizedPayload)) {
+            // Simple replacement for demonstration
+            sanitizedPayload = sanitizedPayload.replace(sqliRegex, ' BLOCKED_SQL_TOKEN ');
+            blockedTypes.push('SQLI');
+        }
+
+        // 2. XSS Defense (Looks for script tags and event handlers)
+        const xssRegex = /(<\s*script\s*>|on\w+=\s*("|')?)/gi;
+        if (defenses.xss && xssRegex.test(sanitizedPayload)) {
+            // HTML entity encoding
+            sanitizedPayload = sanitizedPayload.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            blockedTypes.push('XSS');
+        }
+
+        // 3. Command Injection Defense (Simple test for OS commands)
+        const cmdRegex = /(\s*&&|\s*\|\||\s*`|\s*;/g);
+        if (defenses.auth && cmdRegex.test(sanitizedPayload)) {
+            // Escaping/removal
+            sanitizedPayload = sanitizedPayload.replace(cmdRegex, ' BLOCKED_CMD ');
+            blockedTypes.push('CMD_INJ');
+        }
+        
+        // DUMMY LOGIC for DDoS/Rate Limit - just checks for a long string sequence to simulate a flood
+        if (defenses.ddos && payload.length > 100) {
+            blockedTypes.push('RATE_LIMIT');
+        }
+
+        return { sanitized: sanitizedPayload, blocked: blockedTypes };
+    }
+
+    // Function to handle the interactive test
+    function testPayload() {
+        const rawPayload = document.getElementById('payloadInput').value.trim();
+        if (!rawPayload) {
+            addLog(`[SYSTEM] Please enter a payload to test.`, 'sys');
+            return;
+        }
+
         // ANIMATE SHAKE
         shieldIcon.classList.add('shake-anim');
         setTimeout(() => shieldIcon.classList.remove('shake-anim'), 500);
 
-        const payload = payloads[type];
+        const { sanitized, blocked } = sanitizePayload(rawPayload);
         
-        if (defenses[type]) {
-            // BLOCKED
+        // Check if the payload is inherently malicious (even if blocked)
+        const isMalicious = blocked.length > 0 || /script|select|union|alert|cookie|drop|exec|mkdir/i.test(rawPayload);
+
+        if (blocked.length > 0) {
+            // BLOCKED SCENARIO
             shieldPulse('blue');
-            addLog(`[BLOCKED] ${type.toUpperCase()} ATTACK NEUTRALIZED.\nPayload: ${payload}`, 'blk');
-        } else {
-            // BREACHED
+            addLog(`[BLOCKED] WAF ENGAGED (${blocked.join(', ')}).\nRAW: ${rawPayload}\nSAFE: ${sanitized}`, 'blk');
+            
+        } else if (isMalicious) {
+            // BREACHED SCENARIO (Payload was malicious, but WAF was off/missed it)
             shieldPulse('red');
-            damageHealth(15);
-            addLog(`[BREACH] SECURITY COMPROMISED!\nPayload: ${payload}`, 'breach');
+            damageHealth(damageMap.sqli); // Use a baseline damage
+            addLog(`[BREACH] PAYLOAD EXECUTED! No active module caught it.\nPAYLOAD: ${rawPayload}\nRESULT: ${sanitized}`, 'breach');
+            
+        } else {
+            // SAFE INPUT SCENARIO
+            shieldPulse('green');
+            addLog(`[PASS] Input processed successfully.\nINPUT: ${rawPayload}`, 'sys');
         }
     }
+
 
     function shieldPulse(color) {
         if(color === 'red') {
             shieldIcon.style.borderColor = 'var(--neon-red)';
             shieldIcon.style.color = 'var(--neon-red)';
             shieldIcon.style.boxShadow = '0 0 50px var(--neon-red)';
+        } else if(color === 'blue') {
+            shieldIcon.style.borderColor = 'var(--neon-blue)';
+            shieldIcon.style.color = 'var(--neon-blue)';
+            shieldIcon.style.boxShadow = '0 0 50px var(--neon-blue)';
         } else {
             shieldIcon.style.borderColor = 'var(--neon-green)';
             shieldIcon.style.color = 'var(--neon-green)';
@@ -268,9 +319,9 @@
         }
         
         setTimeout(() => {
-            shieldIcon.style.borderColor = '';
-            shieldIcon.style.color = '';
-            shieldIcon.style.boxShadow = '';
+            shieldIcon.style.borderColor = 'var(--neon-blue)';
+            shieldIcon.style.color = 'var(--neon-blue)';
+            shieldIcon.style.boxShadow = '0 0 50px rgba(0,240,255,0.2)';
         }, 600);
     }
 

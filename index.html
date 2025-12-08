@@ -10,12 +10,13 @@
         --bg-dark: #020617;
         --text-primary: #e2e8f0;
         --text-secondary: #94a3b8;
-        --accent-primary: #10b981; /* Green */
-        --accent-blue: #3b82f6;    /* Blue */
-        --accent-red: #ef4444;     /* Red (Defense) */
-        --accent-cyan: #06b6d4;    /* Cyan (NIDS) */
-        --accent-amber: #f59e0b;   /* Amber (Data) */
-        --accent-purple: #9333ea;  /* Purple (Auth) */
+        --accent-primary: #10b981; /* Green (SecureGen) */
+        --accent-blue: #3b82f6;    /* Blue (Phishing) */
+        --accent-red: #ef4444;     /* Red (WAF Fortress) */
+        --accent-cyan: #06b6d4;    /* Cyan (NIDS Sentinel) */
+        --accent-amber: #f59e0b;   /* Amber (Data/Threat Map) */
+        --accent-purple: #9333ea;  /* Purple (Auth Lab) */
+        --accent-yellow: #facc15;  /* Yellow (NOT USED IN THIS SET) */
         --card-bg: rgba(15, 23, 42, 0.75);
         --border-color: rgba(148, 163, 184, 0.1);
     }
@@ -92,6 +93,7 @@
     .tag-cyan { color: var(--accent-cyan); border-color: var(--accent-cyan); }
     .tag-amber { color: var(--accent-amber); border-color: var(--accent-amber); }
     .tag-purple { color: var(--accent-purple); border-color: var(--accent-purple); }
+    .tag-yellow { color: var(--accent-yellow); border-color: var(--accent-yellow); }
     
     .stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-primary); }
     .stat-number { font-size: 1.5rem; font-weight: 800; color: #fff; }
@@ -171,7 +173,7 @@
             </div>
             <div class="stat-box">
                 <div class="stat-number">20+</div>
-                <div class="stat-label">Projects Deployed</div>
+                <div class="stat-label">Projects Deployed (Up to Project 6)</div>
             </div>
             <div class="stat-box">
                 <div class="stat-number">Sec+ / CEH</div>
@@ -222,13 +224,13 @@
 </section>
 
 <section id="projects">
-    <h2 class="section-title">Featured <span>Projects</span></h2>
+    <h2 class="section-title">Featured <span>Projects</span> (1-6)</h2>
     <div class="grid">
         
         <a href="owasp_defense.html" style="text-decoration: none;" class="card">
             <i class="fas fa-lock card-icon" style="color: var(--accent-red);"></i>
             <h3>Fortress WAF Simulator</h3>
-            <p>Next-Gen defense engine for testing and managing OWASP Top 10 protections interactively.</p>
+            <p>Interactive Next-Gen defense engine for testing and managing OWASP Top 10 protections (SQLi, XSS, etc.).</p>
             <div><span class="tag tag-red">OWASP DEFENSE</span></div>
         </a>
 
