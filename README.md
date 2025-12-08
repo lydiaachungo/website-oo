@@ -1,6 +1,6 @@
-# 🛡️ Advanced Cybersecurity Portfolio
+# 🛡️ Lydia Achungo | Cybersecurity Portfolio
 
-**Live Deployment:** [View Portfolio](https://your-site.vercel.app)
+**Live Deployment:** [View Live Site](https://cyber-portfolio.vercel.app)
 
 ## 📋 Mission Brief
 This repository hosts a suite of interactive security tools designed to demonstrate core competencies in **Offensive Security**, **Defensive Hardening**, and **Threat Analysis**.
@@ -15,7 +15,7 @@ Unlike static portfolios, these tools are **live simulations** running in the br
 A client-side encryption tool demonstrating high-entropy password generation.
 - **Tech Stack:** JavaScript Crypto API (CSPRNG), Math.log2 for Entropy Calculation.
 - **Features:**
-  - Real-time "Crack Time" estimation based on current GPU hash rates (RTX 4090).
+  - Real-time "Crack Time" estimation based on current GPU hash rates.
   - Visual "Matrix" decryption animation.
   - Browser fingerprinting awareness.
 
