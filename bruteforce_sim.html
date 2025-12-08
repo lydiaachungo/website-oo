@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US-CYBERCOM | DEFENSE GRID</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-color: #000000;
+        --grid-color: rgba(0, 255, 65, 0.05);
+        --hud-green: #00ff41;
+        --hud-red: #ff3333;
+        --hud-dim: rgba(0, 255, 65, 0.3);
+        --scanline: rgba(0, 0, 0, 0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--hud-green);
+        font-family: 'Share Tech Mono', monospace;
+        height: 100vh;
+        overflow: hidden;
+        /* Tactical Grid Background */
+        background-image: 
+            linear-gradient(var(--grid-color) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+        background-size: 20px 20px;
+        display: grid;
+        grid-template-columns: 350px 1fr 300px;
+        grid-template-rows: 60px 1fr 250px;
+        gap: 2px; /* Tight gap for panel look */
+        padding: 5px;
+    }
+
+    /* CRT SCANLINE OVERLAY */
+    body::after {
+        content: " ";
+        display: block;
+        position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 999;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+    }
+
+    /* PANELS */
+    .panel {
+        border: 2px solid var(--hud-dim);
+        background: rgba(0, 20, 0, 0.6);
+        position: relative;
+        display: flex; flex-direction: column;
+    }
+    
+    /* Tactical Corner Brackets */
+    .panel::before {
+        content: ""; position: absolute; top: -2px; left: -2px; width: 10px; height: 10px;
+        border-top: 2px solid var(--hud-green); border-left: 2px solid var(--hud-green);
+    }
+    .panel::after {
+        content: ""; position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px;
+        border-bottom: 2px solid var(--hud-green); border-right: 2px solid var(--hud-green);
+    }
+
+    .panel-header {
+        background: var(--hud-dim); color: #000; font-weight: bold;
+        padding: 5px 10px; letter-spacing: 2px; font-size: 0.9rem;
+        display: flex; justify-content: space-between;
+    }
+
+    /* HEADER */
+    header {
+        grid-column: 1 / -1;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 20px; border: 2px solid var(--hud-green);
+        background: #051005;
+    }
+    .brand { font-size: 1.8rem; letter-spacing: 4px; text-shadow: 0 0 10px var(--hud-green); }
+    
+    .defcon-box {
+        border: 1px solid var(--hud-green); padding: 5px 20px;
+        display: flex; gap: 10px; align-items: center;
+    }
+    .defcon-light { width: 15px; height: 15px; background: #333; border-radius: 50%; }
+    .defcon-active { background: var(--hud-red); box-shadow: 0 0 15px var(--hud-red); animation: blink 0.5s infinite; }
+
+    /* LEFT: TARGET */
+    .target-view { grid-row: 2; grid-column: 1; align-items: center; justify-content: center; }
+    
+    .login-frame {
+        border: 1px solid var(--hud-green); padding: 20px; width: 280px; text-align: center;
+        box-shadow: 0 0 20px rgba(0,255,65,0.1);
+    }
+    .login-frame input {
+        background: black; border: 1px solid var(--hud-dim); color: var(--hud-green);
+        width: 100%; padding: 8px; margin: 10px 0; font-family: 'Share Tech Mono', monospace;
+    }
+    .login-frame button {
+        width: 100%; background: var(--hud-green); color: black; border: none; padding: 10px;
+        font-weight: bold; font-family: 'Share Tech Mono', monospace; letter-spacing: 2px;
+    }
+
+    /* CENTER: LOGS */
+    .logs-view { grid-row: 2; grid-column: 2; }
+    .console { 
+        padding: 10px; overflow-y: auto; height: 100%; font-size: 0.8rem; 
+        text-transform: uppercase;
+    }
+    .log-entry { margin-bottom: 2px; border-left: 2px solid transparent; padding-left: 5px; }
+    .log-alert { color: var(--hud-red); border-left: 2px solid var(--hud-red); background: rgba(255,0,0,0.1); }
+    
+    /* RIGHT: CONTROLS */
+    .controls-view { grid-row: 2; grid-column: 3; padding: 20px; gap: 30px; }
+    
+    /* Tactical Slider */
+    input[type=range] {
+        width: 100%; -webkit-appearance: none; background: transparent; border: 1px solid var(--hud-green); height: 10px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 10px; height: 20px; background: var(--hud-green); cursor: pointer;
+    }
+
+    .nuke-btn {
+        width: 100%; border: 2px solid var(--hud-red); color: var(--hud-red); background: transparent;
+        padding: 15px; font-size: 1.2rem; font-family: 'Share Tech Mono', monospace;
+        cursor: pointer; transition: 0.2s; letter-spacing: 2px;
+        margin-top: auto;
+    }
+    .nuke-btn:hover { background: var(--hud-red); color: black; box-shadow: 0 0 30px var(--hud-red); }
+
+    /* BOTTOM: PACKET INTERCEPT */
+    .packet-view { grid-row: 3; grid-column: 1 / -1; display: grid; grid-template-columns: 300px 1fr; }
+    
+    .stat-box { display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid var(--hud-dim); }
+    .stat-num { font-size: 4rem; text-shadow: 0 0 10px var(--hud-green); }
+    
+    .hex-dump {
+        padding: 15px; font-size: 0.8rem; opacity: 0.8; overflow: hidden;
+        white-space: pre-wrap; line-height: 1.2;
+    }
+
+    /* UTILS */
+    .blink { animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    
+    .nav-btn { color: var(--hud-dim); text-decoration: none; border: 1px solid var(--hud-dim); padding: 5px 10px; transition: 0.3s; }
+    .nav-btn:hover { background: var(--hud-green); color: black; }
+
+</style>
+</head>
+<body>
+
+<header>
+    <div class="brand">CYBERCOM <span style="font-size:0.5em; vertical-align:middle;">// US-DOD</span></div>
+    
+    <div class="defcon-box">
+        <span>THREAT LEVEL:</span>
+        <div class="defcon-light" id="defcon-light"></div>
+        <span id="defcon-text" style="color:#555">NORMAL</span>
+    </div>
+
+    <a href="index.html" class="nav-btn">[ ABORT SIMULATION ]</a>
+</header>
+
+<div class="panel target-view">
+    <div class="panel-header"><span>SECURE ACCESS POINT ALPHA</span><span>PORT: 443</span></div>
+    <div class="login-frame" id="target-box">
+        <h3 style="margin-bottom:10px; border-bottom:1px solid var(--hud-green);">AUTHORIZED PERSONNEL ONLY</h3>
+        <input type="text" value="ADMINISTRATOR" readonly>
+        <input type="password" id="fake-pass" value="******" readonly>
+        <button>AUTHENTICATE</button>
+    </div>
+    <div id="lockout" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; pointer-events:none; transition:0.2s;">
+        <i class="fas fa-hand-paper" style="font-size:4rem; color:var(--hud-red); margin-bottom:20px;"></i>
+        <h2 style="color:var(--hud-red); letter-spacing:3px;">ACCESS DENIED</h2>
+        <p style="color:var(--hud-red);">IP BLACKLISTED</p>
+    </div>
+</div>
+
+<div class="panel logs-view">
+    <div class="panel-header"><span>LIVE TELEMETRY</span><span>SRC: 192.168.1.105</span></div>
+    <div class="console" id="console">
+        </div>
+</div>
+
+<div class="panel controls-view">
+    <div class="panel-header">COUNTERMEASURES</div>
+    
+    <div>
+        <label style="display:block; margin-bottom:10px;">THRESHOLD LIMIT: <span id="thresh-val">10</span></label>
+        <input type="range" id="slider" min="5" max="50" value="10" oninput="updateThresh()">
+    </div>
+
+    <div style="border:1px solid var(--hud-dim); padding:10px;">
+        <label>AUTO-RESPONSE:</label><br>
+        <span style="color:var(--hud-green);">> FIREWALL: ACTIVE</span><br>
+        <span style="color:var(--hud-green);">> IPS: ACTIVE</span>
+    </div>
+
+    <button class="nuke-btn" onclick="manualBan()">
+        <i class="fas fa-radiation"></i> INITIATE LOCKDOWN
+    </button>
+</div>
+
+<div class="panel packet-view">
+    <div class="stat-box">
+        <div class="stat-num" id="counter">0</div>
+        <div style="font-size:0.7rem; color:var(--hud-dim);">INTRUSION ATTEMPTS</div>
+    </div>
+    <div class="panel-header" style="position:absolute; width:100%;">PACKET INSPECTION</div>
+    <div class="hex-dump" id="packet-data">
+        WAITING FOR TRAFFIC...
+    </div>
+</div>
+
+<script>
+    const passList = ["123456", "password", "admin", "welcome", "login", "toor", "root", "user", "guest", "111111", "qwerty"];
+    const consoleDiv = document.getElementById('console');
+    const passInput = document.getElementById('fake-pass');
+    const counterDisplay = document.getElementById('counter');
+    const packetDisplay = document.getElementById('packet-data');
+    const defconLight = document.getElementById('defcon-light');
+    const defconText = document.getElementById('defcon-text');
+    const lockout = document.getElementById('lockout');
+    const targetBox = document.getElementById('target-box');
+
+    let attempts = 0;
+    let threshold = 10;
+    let isBanned = false;
+    let timer = null;
+
+    function updateThresh() {
+        threshold = document.getElementById('slider').value;
+        document.getElementById('thresh-val').innerText = threshold;
+    }
+
+    function addLog(msg, isAlert = false) {
+        const div = document.createElement('div');
+        div.className = isAlert ? 'log-entry log-alert' : 'log-entry';
+        const time = new Date().toLocaleTimeString('en-US', {hour12:false});
+        div.innerText = `[${time}] ${msg}`;
+        consoleDiv.appendChild(div);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    function updateDefcon(count) {
+        if (count > threshold * 0.8) {
+            defconLight.className = "defcon-light defcon-active";
+            defconText.innerText = "CRITICAL";
+            defconText.style.color = "#ff3333";
+        }
+    }
+
+    function attack() {
+        if (isBanned) return;
+
+        attempts++;
+        counterDisplay.innerText = attempts;
+        updateDefcon(attempts);
+
+        // Simulate Input
+        const pass = passList[Math.floor(Math.random() * passList.length)];
+        passInput.value = pass;
+        
+        // Shake Effect
+        targetBox.style.transform = "translateX(5px)";
+        setTimeout(() => targetBox.style.transform = "translateX(0)", 100);
+
+        // Log
+        addLog(`POST /AUTH_GATEWAY // USER:ADMIN PASS:${pass} [FAILED]`);
+        
+        // Update Hex Dump
+        packetDisplay.innerHTML = `
+<span style="color:var(--hud-blue)">POST</span> /api/v1/auth HTTP/1.1
+<span style="color:#888">Host:</span> secure-gateway.mil
+<span style="color:#888">User-Agent:</span> Hydra/9.1 (Linux)
+<span style="color:#888">Payload:</span> {"u":"admin", "p":"<span style="color:white; font-weight:bold;">${pass}</span>"}
+<span style="color:var(--hud-red)">[401 UNAUTHORIZED RESPONSE SENT]</span>`;
+
+        if (attempts >= threshold) {
+            triggerBan("AUTOMATED THRESHOLD EXCEEDED");
+        } else {
+            timer = setTimeout(attack, Math.random() * 800 + 200);
+        }
+    }
+
+    function triggerBan(reason) {
+        isBanned = true;
+        clearTimeout(timer);
+        lockout.style.opacity = 1;
+        addLog(`!!! ALERT: ${reason} !!!`, true);
+        addLog(`>>> FIREWALL RULE ADDED: DROP 192.168.1.105`, true);
+        packetDisplay.innerHTML = `<span style="color:var(--hud-red); font-size:1.5rem; font-weight:bold;">[CONNECTION TERMINATED BY FIREWALL]</span>`;
+    }
+
+    function manualBan() {
+        if (!isBanned) triggerBan("MANUAL ANALYST OVERRIDE");
+    }
+
+    // Start
+    setTimeout(attack, 1000);
+
+</script>
+
+</body>
+</html>
