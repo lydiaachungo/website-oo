@@ -92,11 +92,3 @@ This section provides a highly detailed breakdown of the six featured projects, 
 
 ---
 
-## 🚀 Get Started
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-    ```
-2.  **View the Portfolio:**
-    Open the `index.html` file in your browser to explore the fully interactive projects.
