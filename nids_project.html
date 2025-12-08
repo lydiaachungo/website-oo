@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENTERPRISE SOC // THREAT MONITOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-black: #000000;
+        --hud-green: #00ff33;
+        --hud-dim: rgba(0, 255, 51, 0.2);
+        --hud-red: #ff3333;
+        --hud-amber: #ffcc00;
+        --scanline: rgba(0, 0, 0, 0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; scrollbar-width: none; }
+
+    body {
+        background-color: var(--bg-black);
+        color: var(--hud-green);
+        font-family: 'Share Tech Mono', monospace;
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 70px 1fr 280px;
+        /* Tactical Grid Background */
+        background-image: 
+            linear-gradient(rgba(0, 255, 51, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 51, 0.03) 1px, transparent 1px);
+        background-size: 30px 30px;
+    }
+
+    /* CRT SCANLINE EFFECT */
+    body::after {
+        content: " ";
+        display: block;
+        position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 999;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+    }
+
+    /* HEADER */
+    header {
+        border-bottom: 2px solid var(--hud-green);
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 20px; background: rgba(0, 20, 0, 0.8);
+    }
+    .brand { font-size: 2rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--hud-green); }
+    .brand span { font-size: 0.5em; color: var(--hud-green); vertical-align: top; }
+    
+    .threat-level {
+        border: 1px solid var(--hud-green); padding: 5px 20px;
+        display: flex; gap: 10px; align-items: center;
+    }
+    .level-bar { width: 50px; height: 10px; background: #333; display: flex; gap: 2px; }
+    .level-pip { flex: 1; background: #111; }
+    .level-pip.active { background: var(--hud-red); box-shadow: 0 0 10px var(--hud-red); }
+
+    /* MAIN FEED */
+    .intercept-feed {
+        padding: 10px; overflow: hidden; display: flex; flex-direction: column; position: relative;
+    }
+    .feed-container {
+        flex-grow: 1; border: 1px solid var(--hud-dim);
+        background: rgba(0, 20, 0, 0.4); overflow-y: auto;
+    }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-transform: uppercase; }
+    thead { position: sticky; top: 0; background: #001100; z-index: 10; border-bottom: 1px solid var(--hud-green); }
+    th { text-align: left; padding: 10px; color: var(--hud-green); }
+    td { padding: 4px 10px; border-bottom: 1px solid var(--hud-dim); color: #ccc; cursor: pointer; }
+    
+    tr:hover { background: var(--hud-dim); color: #000; }
+    tr.hostile { color: var(--hud-red); text-shadow: 0 0 5px var(--hud-red); }
+    tr.hostile td { border-color: rgba(255, 0, 0, 0.3); }
+
+    /* BOTTOM PANELS */
+    .intel-deck {
+        display: grid; grid-template-columns: 400px 1fr;
+        border-top: 2px solid var(--hud-green);
+        background: #000500;
+    }
+    
+    .panel { padding: 10px; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--hud-dim); position: relative; }
+    .panel h3 { font-size: 1rem; border-bottom: 1px solid var(--hud-dim); margin-bottom: 10px; padding-bottom: 5px; color: var(--hud-amber); }
+
+    /* Rule List */
+    .sig-list { overflow-y: auto; font-size: 0.75rem; color: #888; }
+    .sig { padding: 2px 0; border-left: 2px solid transparent; padding-left: 5px; margin-bottom: 2px; }
+    .sig.alert { color: var(--hud-red); border-left: 2px solid var(--hud-red); background: rgba(255, 0, 0, 0.1); }
+
+    /* Hex Dump */
+    .hex-view {
+        font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;
+        color: var(--hud-green); opacity: 0.8; white-space: pre-wrap;
+        overflow-y: auto;
+    }
+
+    .nav-btn {
+        border: 1px solid var(--hud-green); color: var(--hud-green); text-decoration: none;
+        padding: 5px 15px; text-transform: uppercase; transition: 0.3s;
+    }
+    .nav-btn:hover { background: var(--hud-green); color: #000; }
+
+</style>
+</head>
+<body>
+
+<header>
+    <div class="brand">SENTINEL <span>// SOC_DASHBOARD</span></div>
+    
+    <div style="display:flex; gap:20px; font-size:0.8rem;">
+        <div><i class="fas fa-satellite-dish"></i> STATUS: ONLINE</div>
+        <div><i class="fas fa-network-wired"></i> SENSOR: ETH0</div>
+    </div>
+
+    <div class="threat-level">
+        <span>THREAT LEVEL:</span>
+        <div class="level-bar" id="defcon-meter">
+            <div class="level-pip"></div>
+            <div class="level-pip"></div>
+            <div class="level-pip"></div>
+            <div class="level-pip"></div>
+            <div class="level-pip"></div>
+        </div>
+    </div>
+
+    <a href="index.html" class="nav-btn">[ EXIT DASHBOARD ]</a>
+</header>
+
+<div class="intercept-feed">
+    <div class="feed-container" id="feed-box">
+        <table id="packet-table">
+            <thead>
+                <tr>
+                    <th>TIMESTAMP</th>
+                    <th>SOURCE IP [GEO]</th>
+                    <th>DESTINATION</th>
+                    <th>PROTO</th>
+                    <th>SIZE</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody id="packet-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="intel-deck">
+    <div class="panel">
+        <h3>ACTIVE SNORT RULES</h3>
+        <div class="sig-list">
+            <div class="sig" id="sig-1">SID:1001 [TCP] SQL_INJECTION_UNION_SELECT</div>
+            <div class="sig" id="sig-2">SID:1002 [ICMP] POTENTIAL_DDOS_FLOOD</div>
+            <div class="sig" id="sig-3">SID:1003 [TCP] METERPRETER_REVERSE_SHELL</div>
+            <div class="sig" id="sig-4">SID:1004 [TCP] SSH_BRUTE_FORCE_ROOT</div>
+            <div class="sig" id="sig-5">SID:1005 [UDP] DNS_EXFILTRATION_TUNNEL</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h3>DEEP PACKET INSPECTION (HEX/ASCII)</h3>
+        <div class="hex-view" id="hex-display">
+            // SYSTEM READY...
+            // CLICK ANY ROW TO INSPECT PACKET PAYLOAD
+        </div>
+    </div>
+</div>
+
+<script>
+    const tableBody = document.getElementById('packet-body');
+    const scrollBox = document.getElementById('feed-box');
+    const hexDisplay = document.getElementById('hex-display');
+    const defconMeter = document.getElementById('defcon-meter').children;
+    
+    let packetCount = 0;
+    let threatScore = 0;
+
+    // DATASETS
+    const locations = ["US-EAST", "CN-SHANGHAI", "RU-MOSCOW", "DE-FRANKFURT", "BR-SAOPAULO", "IN-MUMBAI"];
+    
+    const traffic = [
+        // NORMAL
+        { type: "safe", proto: "TCP", dst: "10.0.0.55", info: "HTTPS_HANDSHAKE_TLSV1.3", payload: "16 03 01 02 00 01 00 01 fc 03 03 ... [ENCRYPTED]" },
+        { type: "safe", proto: "UDP", dst: "8.8.8.8", info: "DNS_QUERY_STANDARD", payload: "00 05 02 00 01 00 ... [QUERY: google.com]" },
+        { type: "safe", proto: "TCP", dst: "192.168.1.5", info: "HTTP_GET_INDEX", payload: "GET / HTTP/1.1\r\nUser-Agent: Chrome/90.0\r\nAccept: */*" },
+        
+        // HOSTILE
+        { type: "hostile", sig: "sig-1", proto: "TCP", dst: "10.0.0.80", info: "SQL_INJECTION", payload: "GET /search?q=' UNION SELECT 1,admin,pass FROM users-- HTTP/1.1" },
+        { type: "hostile", sig: "sig-3", proto: "TCP", dst: "10.0.0.22", info: "SHELLCODE_X86", payload: "90 90 90 90 eb 1a 5e 31 c0 88 46 07 ... [METERPRETER]" },
+        { type: "hostile", sig: "sig-4", proto: "TCP", dst: "10.0.0.22", info: "SSH_AUTH_FAIL", payload: "SSH-2.0-OpenSSH_7.6p1\r\n... [FAILED LOGIN: ROOT]" }
+    ];
+
+    function updateDefcon() {
+        // Light up bars based on threats
+        let level = Math.min(5, Math.floor(threatScore / 3));
+        for(let i=0; i<5; i++) {
+            if(i < level) defconMeter[i].classList.add('active');
+            else defconMeter[i].classList.remove('active');
+        }
+    }
+
+    function addPacket() {
+        // 80% safe, 20% hostile
+        let isHostile = Math.random() > 0.8;
+        let data = isHostile 
+            ? traffic.filter(t => t.type === "hostile")[Math.floor(Math.random()*3)]
+            : traffic.filter(t => t.type === "safe")[Math.floor(Math.random()*3)];
+
+        // Randomize Source IP and Geo
+        let srcIP = Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255) + ".XX.XX";
+        let geo = locations[Math.floor(Math.random() * locations.length)];
+        let time = new Date().toLocaleTimeString('en-US', {hour12:false}) + "." + Math.floor(Math.random()*99);
+
+        const row = document.createElement('tr');
+        if(isHostile) {
+            row.classList.add('hostile');
+            threatScore++;
+            updateDefcon();
+            
+            // Flash Signature
+            let sigEl = document.getElementById(data.sig);
+            if(sigEl) {
+                sigEl.classList.add('alert');
+                setTimeout(() => sigEl.classList.remove('alert'), 2000);
+            }
+        } else {
+            // Decay threat score slowly
+            if(threatScore > 0 && Math.random() > 0.5) {
+                threatScore--;
+                updateDefcon();
+            }
+        }
+
+        row.innerHTML = `
+            <td>${time}</td>
+            <td>${srcIP} [${geo}]</td>
+            <td>${data.dst}</td>
+            <td>${data.proto}</td>
+            <td>${Math.floor(Math.random()*1500)} BYTES</td>
+            <td>${isHostile ? '!!! DETECTED !!!' : 'CLEAN'}</td>
+        `;
+
+        // Click for Payload
+        row.onclick = () => {
+            hexDisplay.innerText = `
+[PACKET HEADER]
+SOURCE: ${srcIP}
+GEO-LOC: ${geo}
+TARGET: ${data.dst}
+------------------------------------------------
+[RAW HEX DUMP]
+${data.payload.split('').join(' ')}
+------------------------------------------------
+[ASCII DECODE]
+${data.payload}
+            `;
+        };
+
+        tableBody.appendChild(row);
+        scrollBox.scrollTop = scrollBox.scrollHeight;
+
+        // Cleanup old rows
+        if(tableBody.children.length > 30) tableBody.removeChild(tableBody.children[0]);
+
+        setTimeout(addPacket, Math.random() * 800 + 100);
+    }
+
+    // Init
+    addPacket();
+
+</script>
+
+</body>
+</html>
