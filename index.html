@@ -49,10 +49,18 @@
 
     .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 20px; position: relative; }
     
-    .profile-photo {
-        width: 180px; height: 180px; border-radius: 50%; border: 3px solid var(--accent-primary);
-        box-shadow: 0 0 30px rgba(16, 185, 129, 0.3); object-fit: cover; margin: 0 auto 30px auto;
-        display: block; background-color: #0f172a;
+    /* NEW STYLE FOR INITIALS CIRCLE */
+    .profile-initials {
+        width: 180px; height: 180px; border-radius: 50%;
+        border: 3px solid var(--accent-primary);
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        margin: 0 auto 30px auto;
+        /* Flexbox to center text */
+        display: flex; justify-content: center; align-items: center;
+        /* Colors and Font */
+        background-color: var(--accent-primary);
+        color: white;
+        font-size: 5rem; font-weight: 800;
     }
 
     .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 50px; color: var(--accent-primary); font-size: 0.8rem; font-family: 'Courier New', monospace; margin-bottom: 25px; }
@@ -80,7 +88,7 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
     .about-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start; }
     
-    /* NEW: Horizontal Scroll Layout for Skills */
+    /* Horizontal Scroll Layout for Skills */
     .horizontal-scroll-grid {
         display: flex;
         overflow-x: auto; /* Enables horizontal scrolling */
@@ -134,7 +142,8 @@
 
 <section class="hero">
     <div>
-        <img src="YOUR_REAL_PHOTO_URL_HERE.jpg" alt="Lydia Profile" class="profile-photo"> 
+        <div class="profile-initials">LA</div>
+
         <div class="status-pill">
             <div class="status-dot"></div>
             SYSTEM ONLINE / READY TO DEPLOY
