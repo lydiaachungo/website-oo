@@ -86,18 +86,20 @@
     .section-title span { color: var(--accent-primary); }
 
     /* --- GLOBAL GRID STYLES --- */
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    /* This defines the default responsive grid for Projects and now Skills */
+    .grid, .horizontal-scroll-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+        gap: 20px; 
+    }
+    
     .about-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start; }
     
-    /* --- NEW SKILLS GRID STYLES --- */
+    /* We no longer need separate complex horizontal-scroll styling */
     .horizontal-scroll-grid {
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
         padding-bottom: 20px; 
         max-width: 100%;
     }
-    /* Note: We remove the fixed width for cards inside .horizontal-scroll-grid */
     /* ------------------------------ */
 
     .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; transition: 0.3s; backdrop-filter: blur(10px); position: relative; overflow: hidden; height: 100%; }
@@ -256,7 +258,7 @@
                 <strong style="color:white">Effective security requires active hunting, not passive waiting.</strong>
             </p>
             <p>
-                My expertise centers on the Blue Team lifecycle: from Threat Detection (using custom IDS signatures) and Vulnerability Assessment (AppSec) to complex Incident Response and Digital Forensics. I build resilient systems, analyze attacker intent through log correlation, and ensure rapid containment and remediation.
+                My expertise centers on the Blue Team lifecycle: from Threat Detection (using custom IDS signatures) and Vulnerability Assessment (AppSec) to complex **Incident Response** and **Digital Forensics**. I build resilient systems, analyze attacker intent through log correlation, and ensure rapid containment and remediation.
             </p>
         </div>
 
