@@ -85,22 +85,20 @@
     .section-title { font-size: 2.5rem; margin-bottom: 50px; font-weight: 700; }
     .section-title span { color: var(--accent-primary); }
 
+    /* --- GLOBAL GRID STYLES --- */
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
     .about-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start; }
     
-    /* Horizontal Scroll Layout for Skills */
+    /* --- NEW SKILLS GRID STYLES --- */
     .horizontal-scroll-grid {
-        display: flex;
-        overflow-x: auto; /* Enables horizontal scrolling */
-        gap: 30px;
-        padding-bottom: 20px; /* Add space for scrollbar */
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        padding-bottom: 20px; 
         max-width: 100%;
-        scroll-snap-type: x mandatory; /* Makes cards snap into view */
     }
-    .horizontal-scroll-grid .card {
-        flex: 0 0 320px; /* Forces cards to be 320px wide and prevents shrinking */
-        scroll-snap-align: start;
-    }
+    /* Note: We remove the fixed width for cards inside .horizontal-scroll-grid */
+    /* ------------------------------ */
 
     .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; transition: 0.3s; backdrop-filter: blur(10px); position: relative; overflow: hidden; height: 100%; }
     .card:hover { transform: translateY(-5px); border-color: var(--accent-primary); }
