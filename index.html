@@ -29,7 +29,7 @@
         color: var(--text-primary);
         line-height: 1.6;
         overflow-x: hidden;
-        min-width: 800px;
+        min-width: 320px; /* Ensures minimum width for mobile */
     }
 
     #background-container { 
@@ -155,6 +155,49 @@
         color: #EA4335; /* Icon color (Primary Google Red) */
         border: 1px solid #ccc; 
     }
+
+    /* --- RESPONSIVE ADJUSTMENTS (Media Queries) --- */
+    @media (max-width: 900px) {
+        /* General Mobile Changes */
+        .nav-container { padding: 1rem; }
+        .nav-links { gap: 1rem; }
+        h1 { font-size: 3rem; }
+        h2 { font-size: 1.2rem; margin-bottom: 30px; }
+        .section-title { font-size: 2rem; margin-bottom: 40px; }
+        
+        /* Hero Section Specifics */
+        .profile-initials { width: 140px; height: 140px; font-size: 4rem; }
+        .status-pill { font-size: 0.7rem; padding: 4px 12px; }
+        .terminal { max-width: 100%; padding: 15px; }
+
+        /* About Section (Stacking) */
+        .about-grid { 
+            grid-template-columns: 1fr; /* Change from 2 columns to 1 column */
+            gap: 30px;
+        }
+        .stat-box { margin-bottom: 10px; }
+
+        /* Contact Buttons (Stacking on very small screens) */
+        .btn-group-contact {
+            gap: 15px; 
+            flex-direction: row; 
+        }
+        .btn-logo {
+            width: 55px;
+            height: 55px;
+            font-size: 24px; 
+        }
+    }
+
+    @media (max-width: 550px) {
+        /* Extra Small Screen Adjustments */
+        .btn-group { 
+            flex-direction: column; /* Stack the View Operations and Contact Me buttons */
+        }
+        .btn-group a { 
+            width: 100%; /* Full width buttons */
+        }
+    }
 </style>
 </head>
 <body>
@@ -211,11 +254,11 @@
         <div class="card" style="height: auto;">
             <h3>Mission Statement</h3>
             <p style="margin-bottom: 15px;">
-                I am a dedicated Security Analyst specializing in dynamic defense and immediate response. My core philosophy is: 
+                I am a dedicated **Security Analyst** specializing in dynamic defense and immediate response. My core philosophy is: 
                 <strong style="color:white">Effective security requires active hunting, not passive waiting.</strong>
             </p>
             <p>
-                My expertise centers on the Blue Team lifecycle: from Threat Detection (using custom IDS signatures) and Vulnerability Assessment (AppSec) to complex Incident Response and Digital Forensics. I build resilient systems, analyze attacker intent through log correlation, and ensure rapid containment and remediation.
+                My expertise centers on the Blue Team lifecycle: from **Threat Detection** (using custom IDS signatures) and **Vulnerability Assessment** (AppSec) to complex **Incident Response** and **Digital Forensics**. I build resilient systems, analyze attacker intent through log correlation, and ensure rapid containment and remediation.
             </p>
         </div>
 
@@ -331,11 +374,11 @@
     </p>
     
     <div class="btn-group-contact" style="margin-top: 20px;">
-        <a href="https://github.com/lydiaachungo" target="_blank" class="btn-logo logo-github">
+        <a href="YOUR_GITHUB_URL_HERE" target="_blank" class="btn-logo logo-github">
             <i class="fab fa-github"></i>
         </a>
         
-        <a href="https://www.linkedin.com/in/lydia-achungo-12483236b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="btn-logo logo-linkedin">
+        <a href="YOUR_LINKEDIN_URL_HERE" target="_blank" class="btn-logo logo-linkedin">
             <i class="fab fa-linkedin-in"></i>
         </a>
         
